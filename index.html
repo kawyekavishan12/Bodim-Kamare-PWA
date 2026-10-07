@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#10b981">
+  <meta name="description" content="Bodim Split - Smart Roommate & Student Expense Manager">
+  <title>Bodim Split</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <!-- FontAwesome & Chart.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Top App Bar -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="logo">
+        <i class="fa-solid fa-house-chimney"></i>
+        <span>Bodim Split</span>
+      </div>
+      <button id="installBtn" class="btn-install" style="display: none;">
+        <i class="fa-solid fa-download"></i> Install
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Views Container -->
+  <main class="main-content">
+    
+    <!-- VIEW 1: DASHBOARD / OVERVIEW -->
+    <section id="viewDashboard" class="view active">
+      <!-- Total Spend Card -->
+      <div class="summary-card">
+        <span class="card-subtitle">මේ මාසයේ මුළු වියදම (Total Spent)</span>
+        <h2 id="totalSpendText" class="total-amount">Rs. 0</h2>
+        <div class="balance-row">
+          <div class="balance-item positive">
+            <small>You are owed</small>
+            <strong id="youOwedText">Rs. 0</strong>
+          </div>
+          <div class="balance-divider"></div>
+          <div class="balance-item negative">
+            <small>You owe</small>
+            <strong id="youOweText">Rs. 0</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Settlement Summary -->
+      <div class="section-title">
+        <h3><i class="fa-solid fa-handshake"></i> Settlement Summary</h3>
+        <button class="link-btn" onclick="switchTab('settlement')">View all</button>
+      </div>
+      <div id="quickSettlementList" class="settlement-list">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Quick Chart Preview -->
+      <div class="section-title">
+        <h3><i class="fa-solid fa-chart-pie"></i> Expense Breakdown</h3>
+        <button class="link-btn" onclick="switchTab('analytics')">Full stats</button>
+      </div>
+      <div class="chart-container-card">
+        <canvas id="quickChart"></canvas>
+      </div>
+
+      <!-- Recent Expenses Preview -->
+      <div class="section-title">
+        <h3><i class="fa-solid fa-receipt"></i> Recent Expenses</h3>
+        <button class="link-btn" onclick="switchTab('expenses')">View all</button>
+      </div>
+      <div id="recentExpensesList" class="expense-list">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- VIEW 2: ALL EXPENSES & CATEGORY FILTER -->
+    <section id="viewExpenses" class="view">
+      <div class="view-header">
+        <h2>Expenses History</h2>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="filter-pills" id="categoryFilters">
+        <button class="pill active" onclick="filterExpensesByCategory('All')">All</button>
+        <button class="pill" onclick="filterExpensesByCategory('Food')">🍛 Food</button>
+        <button class="pill" onclick="filterExpensesByCategory('Utilities')">💡 Utilities</button>
+        <button class="pill" onclick="filterExpensesByCategory('Rent')">🏠 Rent</button>
+        <button class="pill" onclick="filterExpensesByCategory('Groceries')">🛒 Groceries</button>
+        <button class="pill" onclick="filterExpensesByCategory('Transport')">🚌 Transport</button>
+        <button class="pill" onclick="filterExpensesByCategory('Other')">📦 Other</button>
+      </div>
+
+      <div id="allExpensesList" class="expense-list">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- VIEW 3: SETTLEMENT / WHO OWES WHOM & WHATSAPP SHARE -->
+    <section id="viewSettlement" class="view">
+      <div class="view-header">
+        <h2>Who Pays Whom?</h2>
+        <p class="subtitle-text">බිල් බෙදුවාම කාටද සල්ලි ලැබෙන්න තියෙන්නේ, කවුද දෙන්න ඕනේ කියලා මෙතනින් බලාගන්න.</p>
+      </div>
+
+      <!-- WhatsApp Share Button -->
+      <div class="action-banner">
+        <button id="whatsappShareBtn" class="btn-whatsapp" onclick="shareToWhatsApp()">
+          <i class="fa-brands fa-whatsapp"></i> Share Summary on WhatsApp
+        </button>
+      </div>
+
+      <div id="fullSettlementList" class="settlement-list">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- VIEW 4: ANALYTICS & CHARTS -->
+    <section id="viewAnalytics" class="view">
+      <div class="view-header">
+        <h2>Expense Analytics</h2>
+        <p class="subtitle-text">වියදම් විස්තර ප්‍රස්ථාර මගින් බලාගන්න.</p>
+      </div>
+
+      <div class="chart-card">
+        <h4><i class="fa-solid fa-chart-pie"></i> Spending by Category</h4>
+        <div class="canvas-wrapper">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h4><i class="fa-solid fa-chart-column"></i> Who Paid the Most?</h4>
+        <div class="canvas-wrapper">
+          <canvas id="payersChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: ROOMMATES / MEMBERS -->
+    <section id="viewMembers" class="view">
+      <div class="view-header">
+        <h2>Bodim Roommates</h2>
+        <p class="subtitle-text">බෝඩිමේ ඉන්න යාලුවන්ගේ නම් මෙතනට එකතු කරන්න.</p>
+      </div>
+      <form id="addMemberForm" class="add-member-form">
+        <input type="text" id="newMemberName" placeholder="Enter roommate name..." required>
+        <button type="submit" class="btn-primary"><i class="fa-solid fa-plus"></i> Add</button>
+      </form>
+      <div id="membersList" class="members-chips">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Floating Add Button -->
+  <button id="openAddModalBtn" class="fab-btn" aria-label="Add Expense">
+    <i class="fa-solid fa-plus"></i>
+  </button>
+
+  <!-- Bottom Navigation Bar (5 tabs) -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('dashboard')">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('expenses')">
+      <i class="fa-solid fa-receipt"></i>
+      <span>Expenses</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('analytics')">
+      <i class="fa-solid fa-chart-pie"></i>
+      <span>Stats</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('settlement')">
+      <i class="fa-solid fa-scale-balanced"></i>
+      <span>Settle</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('members')">
+      <i class="fa-solid fa-user-group"></i>
+      <span>Members</span>
+    </button>
+  </nav>
+
+  <!-- Add Expense Modal -->
+  <div id="expenseModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add New Expense</h3>
+        <button id="closeModalBtn" class="close-btn">&times;</button>
+      </div>
+      <form id="expenseForm">
+        <div class="form-group">
+          <label>Title / Description</label>
+          <input type="text" id="expenseTitle" placeholder="e.g. Rice & Curry, Wifi Bill, Tea" required>
+        </div>
+
+        <div class="form-group">
+          <label>Amount (Rs.)</label>
+          <input type="number" id="expenseAmount" placeholder="0.00" min="1" step="any" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category</label>
+            <select id="expenseCategory">
+              <option value="Food">🍛 Food</option>
+              <option value="Utilities">💡 Utilities (Water/Current/Wifi)</option>
+              <option value="Rent">🏠 Rent</option>
+              <option value="Groceries">🛒 Groceries</option>
+              <option value="Transport">🚌 Transport</option>
+              <option value="Other">📦 Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Paid by</label>
+            <select id="expensePaidBy" required>
+              <!-- Populated by JS -->
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Split between (කා අතරද බෙදෙන්නේ?)</label>
+          <div id="splitCheckboxes" class="split-checkbox-group">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary btn-block">Save Expense</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
